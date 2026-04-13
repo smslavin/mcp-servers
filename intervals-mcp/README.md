@@ -98,7 +98,7 @@ Add the server to your MCP config (`.claude/settings.json` or `~/.claude.json`):
 }
 ```
 
-### Connecting from Claude Desktop
+### Connecting from Claude Desktop (macOS/Linux)
 
 Add to `claude_desktop_config.json`:
 
@@ -112,3 +112,23 @@ Add to `claude_desktop_config.json`:
   }
 }
 ```
+
+### Connecting from Claude Desktop (Windows, server running in WSL)
+
+Use `wsl.exe` to invoke the server across the WSL boundary:
+
+```json
+{
+  "mcpServers": {
+    "intervals": {
+      "command": "wsl.exe",
+      "args": [
+        "/home/seanslavin/miniconda3/envs/intervals-mcp/bin/python",
+        "/home/seanslavin/code/mcp-servers/intervals-mcp/server.py"
+      ]
+    }
+  }
+}
+```
+
+`wsl.exe` is on the Windows `PATH` by default. The `.env` file is loaded relative to `server.py`, so credentials are picked up automatically.
