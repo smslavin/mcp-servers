@@ -1,0 +1,18 @@
+from typing import Optional
+
+from app import mcp
+from client import athlete_id, get_client, BASE_URL
+
+
+@mcp.tool()
+def get_athlete(athlete_id_override: Optional[str] = None) -> str:
+    """
+    Get profile and settings for the athlete.
+
+    Args:
+        athlete_id_override: Athlete ID (e.g. 'i12345'). Defaults to INTERVALS_ATHLETE_ID env var.
+    """
+    with get_client() as c:
+        r = c.get(f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}")
+    r.raise_for_status()
+    return r.text
