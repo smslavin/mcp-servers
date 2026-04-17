@@ -20,3 +20,14 @@ def get_client() -> httpx.Client:
 
 def athlete_id(override: str | None) -> str:
     return override or ATHLETE_ID
+
+
+def handle_response(r: httpx.Response) -> str:
+    """Return response text, or a descriptive error string on 4xx/5xx."""
+    if r.is_error:
+        try:
+            detail = r.json()
+        except Exception:
+            detail = r.text or r.reason_phrase
+        return f"Error {r.status_code} from {r.url}: {detail}"
+    return r.text

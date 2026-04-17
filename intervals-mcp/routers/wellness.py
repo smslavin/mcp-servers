@@ -2,7 +2,7 @@ import json
 from typing import Optional
 
 from app import mcp
-from client import athlete_id, get_client, BASE_URL
+from client import athlete_id, get_client, handle_response, BASE_URL
 
 
 @mcp.tool()
@@ -24,8 +24,7 @@ def list_wellness(
             f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}/wellness",
             params={"oldest": oldest, "newest": newest},
         )
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -39,8 +38,7 @@ def get_wellness(date: str, athlete_id_override: Optional[str] = None) -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}/wellness/{date}")
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -69,8 +67,7 @@ def update_wellness(
             f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}/wellness/{date}",
             json=data,
         )
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -95,5 +92,4 @@ def bulk_update_wellness(
             f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}/wellness-bulk",
             json=data,
         )
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)

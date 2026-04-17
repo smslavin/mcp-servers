@@ -2,7 +2,7 @@ import json
 from typing import Optional
 
 from app import mcp
-from client import athlete_id, get_client, BASE_URL
+from client import athlete_id, get_client, handle_response, BASE_URL
 
 
 # ---------------------------------------------------------------------------
@@ -39,8 +39,7 @@ def list_activities(
             f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}/activities",
             params=params,
         )
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -65,8 +64,7 @@ def search_activities(
             f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}/activities/search",
             params=params,
         )
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -91,8 +89,7 @@ def search_activities_full(
             f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}/activities/search-full",
             params=params,
         )
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -140,8 +137,7 @@ def interval_search_activities(
             f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}/activities/interval-search",
             params=params,
         )
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -166,8 +162,7 @@ def get_activities_by_ids(
             f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}/activities/{ids}",
             params=params,
         )
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 # ---------------------------------------------------------------------------
@@ -188,8 +183,7 @@ def get_activity(activity_id: str, include_intervals: bool = False) -> str:
         params["intervals"] = "true"
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}", params=params)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -208,8 +202,7 @@ def update_activity(activity_id: str, payload: str) -> str:
         return f"Invalid JSON payload: {e}"
     with get_client() as c:
         r = c.put(f"{BASE_URL}/activity/{activity_id}", json=data)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -222,8 +215,7 @@ def delete_activity(activity_id: str) -> str:
     """
     with get_client() as c:
         r = c.delete(f"{BASE_URL}/activity/{activity_id}")
-    r.raise_for_status()
-    return r.text or "Activity deleted."
+    return handle_response(r) or "Activity deleted."
 
 
 # ---------------------------------------------------------------------------
@@ -249,8 +241,7 @@ def get_activity_streams(
         params["types"] = types
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/streams", params=params)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -263,8 +254,7 @@ def get_activity_intervals(activity_id: str) -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/intervals")
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -286,8 +276,7 @@ def get_activity_interval_stats(
             f"{BASE_URL}/activity/{activity_id}/interval-stats",
             params={"start_index": start_index, "end_index": end_index},
         )
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 # ---------------------------------------------------------------------------
@@ -325,8 +314,7 @@ def get_activity_best_efforts(
         params["minValue"] = min_value
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/best-efforts", params=params)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -343,8 +331,7 @@ def get_activity_power_curve(activity_id: str, fatigue: Optional[bool] = None) -
         params["fatigue"] = str(fatigue).lower()
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/power-curve", params=params)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -357,8 +344,7 @@ def get_activity_hr_curve(activity_id: str) -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/hr-curve")
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -375,8 +361,7 @@ def get_activity_pace_curve(activity_id: str, gap: Optional[bool] = None) -> str
         params["gap"] = str(gap).lower()
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/pace-curve", params=params)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -396,8 +381,7 @@ def get_activity_power_histogram(
         params["bucketSize"] = bucket_size
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/power-histogram", params=params)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -417,8 +401,7 @@ def get_activity_hr_histogram(
         params["bucketSize"] = bucket_size
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/hr-histogram", params=params)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -431,8 +414,7 @@ def get_activity_pace_histogram(activity_id: str) -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/pace-histogram")
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -445,8 +427,7 @@ def get_activity_power_vs_hr(activity_id: str) -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/power-vs-hr")
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -459,8 +440,7 @@ def get_activity_time_at_hr(activity_id: str) -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/time-at-hr")
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 # ---------------------------------------------------------------------------
@@ -488,8 +468,7 @@ def get_activity_map(
         params["weather"] = "true"
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/map", params=params)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -502,8 +481,7 @@ def get_activity_weather(activity_id: str) -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/weather-summary")
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -516,8 +494,7 @@ def get_activity_segments(activity_id: str) -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/segments")
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 # ---------------------------------------------------------------------------
@@ -545,8 +522,7 @@ def get_activity_messages(
         params["sinceId"] = since_id
     with get_client() as c:
         r = c.get(f"{BASE_URL}/activity/{activity_id}/messages", params=params)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
 
 
 @mcp.tool()
@@ -564,5 +540,4 @@ def post_activity_message(activity_id: str, payload: str) -> str:
         return f"Invalid JSON payload: {e}"
     with get_client() as c:
         r = c.post(f"{BASE_URL}/activity/{activity_id}/messages", json=data)
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)

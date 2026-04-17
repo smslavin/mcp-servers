@@ -1,7 +1,7 @@
 from typing import Optional
 
 from app import mcp
-from client import athlete_id, get_client, BASE_URL
+from client import athlete_id, get_client, handle_response, BASE_URL
 
 
 @mcp.tool()
@@ -14,5 +14,4 @@ def get_athlete(athlete_id_override: Optional[str] = None) -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/athlete/{athlete_id(athlete_id_override)}")
-    r.raise_for_status()
-    return r.text
+    return handle_response(r)
