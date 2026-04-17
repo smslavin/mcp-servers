@@ -23,11 +23,16 @@ def athlete_id(override: str | None) -> str:
 
 
 def handle_response(r: httpx.Response) -> str:
-    """Return response text, or a descriptive error string on 4xx/5xx."""
+    """Return response text, or raise a RuntimeError on 4xx/5xx.
+
+    Raising instead of returning an error string ensures the MCP client
+    receives a protocol-level error with the exact message rather than
+    having the AI model paraphrase the error as tool output.
+    """
     if r.is_error:
         try:
-            detail = r.json()
+            detail = r.json().get("error") or r.json()
         except Exception:
             detail = r.text or r.reason_phrase
-        return f"Error {r.status_code} from {r.url}: {detail}"
+        raise RuntimeError(f"HTTP {r.status_code}: {detail}")
     return r.text

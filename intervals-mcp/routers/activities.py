@@ -215,7 +215,7 @@ def delete_activity(activity_id: str) -> str:
     """
     with get_client() as c:
         r = c.delete(f"{BASE_URL}/activity/{activity_id}")
-    return handle_response(r) or "Activity deleted."
+    return handle_response(r) or "Deleted."
 
 
 # ---------------------------------------------------------------------------
