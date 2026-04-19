@@ -50,12 +50,18 @@ An [MCP](https://modelcontextprotocol.io/) server for the [intervals.icu](https:
 | `get_activity_messages` | List comments on an activity |
 | `post_activity_message` | Add a comment to an activity |
 
+### HRV
+| Tool | Description |
+|---|---|
+| `get_hrv_data` | Daily HRV metrics, recovery score, sleep, and subjective wellness from HRV4Training CSV export |
+
 ## Setup
 
 ### Prerequisites
 
 - [Conda](https://docs.conda.io/en/latest/miniconda.html)
 - An intervals.icu account with API access enabled
+- (Optional) [HRV4Training](https://www.hrv4training.com) with CSV export to a local folder
 
 ### Installation
 
@@ -74,6 +80,13 @@ An [MCP](https://modelcontextprotocol.io/) server for the [intervals.icu](https:
     INTERVALS_ATHLETE_ID=i12345        # from your profile URL
     INTERVALS_API_KEY=your_key_here    # Settings > Developer Settings
     ```
+
+3. (Optional) Configure HRV4Training:
+    Export your measurements from HRV4Training to a local folder, then set the directory in `.env`:
+    ```
+    HRV4TRAINING_CSV_DIR=/path/to/hrv/exports
+    ```
+    The most recently modified CSV in that directory is used automatically — no need to update the path after each export. On WSL, Windows paths are accessible at `/mnt/c/Users/yourname/...`.
 
 ## Usage
 

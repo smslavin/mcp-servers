@@ -1,3 +1,3 @@
-from . import athlete, wellness, activities
+from . import athlete, wellness, activities, hrv
 
-__all__ = ["athlete", "wellness", "activities"]
+__all__ = ["athlete", "wellness", "activities", "hrv"]
