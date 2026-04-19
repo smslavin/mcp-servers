@@ -81,12 +81,26 @@ An [MCP](https://modelcontextprotocol.io/) server for the [intervals.icu](https:
     INTERVALS_API_KEY=your_key_here    # Settings > Developer Settings
     ```
 
-3. (Optional) Configure HRV4Training:
-    Export your measurements from HRV4Training to a local folder, then set the directory in `.env`:
+3. (Optional) Configure HRV4Training — choose one:
+
+    **Option A — Local directory** (e.g. synced via Dropbox desktop app):
     ```
     HRV4TRAINING_CSV_DIR=/path/to/hrv/exports
     ```
-    The most recently modified CSV in that directory is used automatically — no need to update the path after each export. On WSL, Windows paths are accessible at `/mnt/c/Users/yourname/...`.
+    On WSL, Windows paths are accessible at `/mnt/c/Users/yourname/...`. The most recently modified CSV is used automatically.
+
+    **Option B — Dropbox API** (no local sync required):
+    Create an app at [dropbox.com/developers](https://www.dropbox.com/developers/apps) with App folder scope and add `http://localhost:8765/callback` as the redirect URI. Then:
+    ```
+    DROPBOX_APP_KEY=your_app_key
+    DROPBOX_APP_SECRET=your_app_secret
+    ```
+    Run the one-time authorization:
+    ```bash
+    conda activate intervals-mcp
+    python auth_dropbox.py
+    ```
+    Export your HRV4Training CSV into the Dropbox app folder (`Apps/<your-app-name>/`). The server will fetch the most recently modified CSV automatically and refresh tokens as needed.
 
 ## Usage
 
