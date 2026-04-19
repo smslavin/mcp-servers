@@ -21,9 +21,31 @@ An [MCP](https://modelcontextprotocol.io/) server for the [Strava](https://www.s
 | `get_activity_laps` | Get laps (equivalent to intervals in intervals.icu) |
 | `get_activity_streams` | Time-series data (power, HR, cadence, speed, altitude, etc.) |
 | `get_activity_zones` | Heart rate and power zone distribution for an activity |
+| `get_activity_segment_efforts` | All segment efforts for an activity with PR/KOM rankings |
 | `get_activity_comments` | List comments on an activity |
 | `get_activity_kudos` | List kudos on an activity |
 | `update_activity` | Update activity fields (name, type, description, gear, etc.) |
+
+### Segments
+| Tool | Description |
+|---|---|
+| `get_segment` | Get segment details (name, distance, grade, elevation) |
+| `get_segment_effort` | Get a single segment effort by ID |
+| `list_segment_efforts` | List the athlete's efforts on a segment with optional date filter |
+| `list_starred_segments` | List segments starred by the athlete |
+
+### Gear
+| Tool | Description |
+|---|---|
+| `list_athlete_gear` | List all bikes and shoes with total logged distance |
+| `get_gear` | Get details for a specific piece of gear |
+
+### Routes
+| Tool | Description |
+|---|---|
+| `list_routes` | List routes created by the athlete |
+| `get_route` | Get route details (name, distance, elevation, map) |
+| `get_route_streams` | Get streams for a route (latlng, distance, altitude) |
 
 ## Setup
 
