@@ -1,8 +1,91 @@
 # intervals-mcp
 
-An [MCP](https://modelcontextprotocol.io/) server for the [intervals.icu](https://intervals.icu) training and wellness platform. Exposes the intervals.icu REST API as tools so AI agents can read and analyse training data, wellness metrics, and activity details.
+A natural language interface for endurance training data, built on the Model Context Protocol (MCP). Connects [intervals.icu](https://intervals.icu) training analytics and [HRV4Training](https://www.hrv4training.com) recovery data to AI assistants, enabling conversational analysis of performance, wellness, and training load.
 
-## Tools
+---
+
+## The Problem
+
+Endurance athletes generate rich, multi-dimensional data — training load, power output, heart rate, sleep quality, HRV, subjective wellness — spread across multiple platforms. Extracting meaningful insight from that data typically requires manually exporting files, writing queries, or navigating platform-specific dashboards.
+
+Asking a question like *"Was my power output higher on days when my HRV was elevated?"* requires joining data from at least two sources, filtering by date, and performing a correlation — work that takes time and domain knowledge to set up correctly.
+
+---
+
+## The Solution
+
+intervals-mcp exposes the intervals.icu REST API and HRV4Training export data as AI-callable tools via the [Model Context Protocol](https://modelcontextprotocol.io/). Connected to an AI assistant, it enables natural language queries across training, wellness, and recovery data without writing code or leaving the chat interface.
+
+**Example interactions:**
+
+```
+"How has my training load trended over the past 4 weeks?"
+"Compare my normalized power on days when HRV was above vs. below my baseline."
+"What were my best 20-minute power efforts this month?"
+"Show me my wellness context for the week leading up to my last race."
+"What activities did I log in the last 30 days and how did RPE trend?"
+"How much time did I spend in each heart rate zone on Tuesday's ride?"
+```
+
+---
+
+## Key Capabilities
+
+| Capability | Description |
+|---|---|
+| **Wellness tracking** | Read and write daily wellness entries — HRV, sleep, fatigue, muscle soreness, mood |
+| **Activity analysis** | Power curves, HR curves, pace curves, zone distributions, aerobic decoupling |
+| **Interval inspection** | Computed intervals, lap stats, best efforts across any stream |
+| **HRV integration** | Daily HRV metrics and recovery scores from HRV4Training, correlated with training data |
+| **Training search** | Find activities by name, tag, or interval characteristics |
+| **Time-series data** | Raw streams — power, HR, cadence, speed, altitude — for any activity |
+
+---
+
+## Architecture
+
+```
+AI Assistant (Claude Desktop, Claude Code, etc.)
+        │
+        ▼
+intervals-mcp (FastMCP / stdio)
+        │
+        ├── intervals.icu REST API
+        │       └── Training load, activities, wellness, streams
+        │
+        └── HRV4Training CSV
+                ├── Local directory (direct file read)
+                └── Dropbox API (remote fetch, auto token refresh)
+```
+
+### Design Decisions
+
+**MCP as the integration layer.** The Model Context Protocol provides a standard interface between AI models and external data sources. Implementing MCP makes this server compatible with any MCP-capable client — Claude Desktop, Claude Code, VS Code, or custom tooling — without modification.
+
+**Domain-separated routers.** Tools are organized into modules by concern (`athlete`, `wellness`, `activities`, `hrv`). This keeps each domain independently testable and makes it straightforward to load only the relevant subset of tools for a given conversation.
+
+**HRV4Training via Dropbox API.** HRV4Training has no public API. Rather than require a manual file sync step, the server integrates with the Dropbox API directly — fetching the most recently modified CSV from a designated app folder on demand. A local directory path is also supported for environments with Dropbox desktop sync available.
+
+**Separate server from strava-mcp.** The intervals.icu public API does not proxy Strava-sourced activity data due to Strava's API terms. Raw activity streams, segment efforts, and gear data require direct Strava API access. The two servers are designed to run alongside each other, with intervals.icu handling training analytics and wellness, and strava-mcp handling raw activity data.
+
+**Errors surface as exceptions.** Tool functions raise `RuntimeError` on API failures rather than returning error strings. This ensures the exact API error message reaches the AI assistant rather than being paraphrased.
+
+---
+
+## Technology Stack
+
+| Component | Technology |
+|---|---|
+| MCP Server | Python, [FastMCP](https://github.com/jlowin/fastmcp) |
+| HTTP Client | [httpx](https://www.python-httpx.org) |
+| Training Platform | [intervals.icu](https://intervals.icu) REST API |
+| HRV Data | [HRV4Training](https://www.hrv4training.com) CSV via Dropbox API or local path |
+| Credential Management | python-dotenv with OAuth 2.0 token auto-refresh |
+| Runtime | Python 3.11, Conda |
+
+---
+
+## MCP Tools
 
 ### Athlete
 | Tool | Description |
@@ -53,15 +136,17 @@ An [MCP](https://modelcontextprotocol.io/) server for the [intervals.icu](https:
 ### HRV
 | Tool | Description |
 |---|---|
-| `get_hrv_data` | Daily HRV metrics, recovery score, sleep, and subjective wellness from HRV4Training CSV export |
+| `get_hrv_data` | Daily HRV metrics, recovery score, sleep, and subjective wellness from HRV4Training |
+
+---
 
 ## Setup
 
 ### Prerequisites
 
 - [Conda](https://docs.conda.io/en/latest/miniconda.html)
-- An intervals.icu account with API access enabled
-- (Optional) [HRV4Training](https://www.hrv4training.com) with CSV export to a local folder
+- An [intervals.icu](https://intervals.icu) account with API access enabled
+- (Optional) [HRV4Training](https://www.hrv4training.com) with Dropbox export configured
 
 ### Installation
 
@@ -97,52 +182,13 @@ An [MCP](https://modelcontextprotocol.io/) server for the [intervals.icu](https:
     ```
     Run the one-time authorization:
     ```bash
-    conda activate intervals-mcp
     python auth_dropbox.py
     ```
-    Export your HRV4Training CSV into the Dropbox app folder (`Apps/<your-app-name>/`). The server will fetch the most recently modified CSV automatically and refresh tokens as needed.
+    Export your HRV4Training CSV into the Dropbox app folder (`Apps/<your-app-name>/`). The server fetches the most recently modified CSV automatically and refreshes tokens as needed.
 
-## Usage
-
-Run the server over stdio:
-```bash
-conda activate intervals-mcp
-python server.py
-```
-
-### Connecting from Claude Code
-
-Add the server to your MCP config (`.claude/settings.json` or `~/.claude.json`):
-
-```json
-{
-  "mcpServers": {
-    "intervals": {
-      "command": "/path/to/miniconda3/envs/intervals-mcp/bin/python",
-      "args": ["/path/to/mcp-servers/intervals-mcp/server.py"]
-    }
-  }
-}
-```
-
-### Connecting from Claude Desktop (macOS/Linux)
-
-Add to `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "intervals": {
-      "command": "/path/to/miniconda3/envs/intervals-mcp/bin/python",
-      "args": ["/path/to/mcp-servers/intervals-mcp/server.py"]
-    }
-  }
-}
-```
+    > **Running in WSL?** Run `python auth_dropbox.py --code YOUR_CODE` after copying the authorization code from the browser redirect URL.
 
 ### Connecting from Claude Desktop (Windows, server running in WSL)
-
-Use `wsl.exe` to invoke the server across the WSL boundary:
 
 ```json
 {
@@ -150,12 +196,47 @@ Use `wsl.exe` to invoke the server across the WSL boundary:
     "intervals": {
       "command": "wsl.exe",
       "args": [
-        "/home/seanslavin/miniconda3/envs/intervals-mcp/bin/python",
-        "/home/seanslavin/code/mcp-servers/intervals-mcp/server.py"
+        "/home/yourname/miniconda3/envs/intervals-mcp/bin/python",
+        "/home/yourname/code/mcp-servers/intervals-mcp/server.py"
       ]
     }
   }
 }
 ```
 
-`wsl.exe` is on the Windows `PATH` by default. The `.env` file is loaded relative to `server.py`, so credentials are picked up automatically.
+### Connecting from Claude Code or Claude Desktop (macOS/Linux)
+
+```json
+{
+  "mcpServers": {
+    "intervals": {
+      "command": "/path/to/miniconda3/envs/intervals-mcp/bin/python",
+      "args": ["/path/to/mcp-servers/intervals-mcp/server.py"]
+    }
+  }
+}
+```
+
+---
+
+## Limitations and Known Constraints
+
+- **Strava activity data is not available through intervals.icu.** The intervals.icu public API does not proxy raw Strava data. For activity streams, segment efforts, and gear, use [strava-mcp](../strava-mcp/) alongside this server.
+- **HRV4Training has no public API.** Data is sourced from a CSV export. This requires a periodic manual export from the HRV4Training app; it is not a live feed.
+- **Write operations are available but unconfirmed.** `update_activity`, `update_wellness`, and `delete_activity` write to intervals.icu. Use with care in automated or multi-step agent workflows.
+- **Model quality affects analysis depth.** Claude Sonnet 4.6 or later is recommended for reliable tool use and multi-source data correlation. Earlier model versions showed hallucination of training data when tool calls were expected.
+
+---
+
+## Roadmap Considerations
+
+- **Cross-source analysis server** — dedicated MCP server with pre-computed correlations between HRV, sleep, and performance metrics (normalized power, HR efficiency, segment times vs. fitness model)
+- **Strava integration in a single query** — agent-level orchestration to join intervals.icu and Strava data in a single conversation without switching servers
+- **Wellness trend alerting** — tool to flag meaningful deviations in HRV or sleep patterns relative to rolling baseline
+- **Live HRV feed** — integration with wearables that offer a direct API (Garmin, Polar, Whoop) to eliminate the CSV export step
+
+---
+
+## License
+
+MIT
