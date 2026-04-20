@@ -1,20 +1,20 @@
 # intervals-mcp
 
-A natural language interface for endurance training data, built on the Model Context Protocol (MCP). Connects [intervals.icu](https://intervals.icu) training analytics and [HRV4Training](https://www.hrv4training.com) recovery data to AI assistants, enabling conversational analysis of performance, wellness, and training load.
+A natural language interface for endurance training data, built on the Model Context Protocol (MCP). Connects [intervals.icu](https://intervals.icu) training analytics and [HRV4Training](https://www.hrv4training.com) recovery data to AI assistants, enabling conversational analysis of performance, wellness and training load.
 
 ---
 
 ## The Problem
 
-Endurance athletes generate rich, multi-dimensional data — training load, power output, heart rate, sleep quality, HRV, subjective wellness — spread across multiple platforms. Extracting meaningful insight from that data typically requires manually exporting files, writing queries, or navigating platform-specific dashboards.
+Endurance athletes generate rich, multi-dimensional data — training load, power output, heart rate, sleep quality, HRV, subjective wellness — spread across multiple platforms. Extracting meaningful insight from that data typically requires manually exporting files, writing queries or navigating platform-specific dashboards.
 
-Asking a question like *"Was my power output higher on days when my HRV was elevated?"* requires joining data from at least two sources, filtering by date, and performing a correlation — work that takes time and domain knowledge to set up correctly.
+Asking a question like *"Was my power output higher on days when my HRV was elevated?"* requires joining data from at least two sources, filtering by date and performing a correlation. Work that takes time and domain knowledge to set up correctly.
 
 ---
 
 ## The Solution
 
-intervals-mcp exposes the intervals.icu REST API and HRV4Training export data as AI-callable tools via the [Model Context Protocol](https://modelcontextprotocol.io/). Connected to an AI assistant, it enables natural language queries across training, wellness, and recovery data without writing code or leaving the chat interface.
+intervals-mcp exposes the intervals.icu REST API and HRV4Training export data as AI-callable tools via the [Model Context Protocol](https://modelcontextprotocol.io/). Connected to an AI assistant, it enables natural language queries across training, wellness and recovery data without writing code or leaving the chat interface.
 
 **Example interactions:**
 
@@ -64,9 +64,9 @@ intervals-mcp (FastMCP / stdio)
 
 **Domain-separated routers.** Tools are organized into modules by concern (`athlete`, `wellness`, `activities`, `hrv`). This keeps each domain independently testable and makes it straightforward to load only the relevant subset of tools for a given conversation.
 
-**HRV4Training via Dropbox API.** HRV4Training has no public API. Rather than require a manual file sync step, the server integrates with the Dropbox API directly — fetching the most recently modified CSV from a designated app folder on demand. A local directory path is also supported for environments with Dropbox desktop sync available.
+**HRV4Training via Dropbox API.** HRV4Training has no public API. Rather than require a manual file sync step, the server integrates with the Dropbox API directly fetching the most recently modified CSV from a designated app folder on demand. A local directory path is also supported for environments with Dropbox desktop sync available.
 
-**Separate server from strava-mcp.** The intervals.icu public API does not proxy Strava-sourced activity data due to Strava's API terms. Raw activity streams, segment efforts, and gear data require direct Strava API access. The two servers are designed to run alongside each other, with intervals.icu handling training analytics and wellness, and strava-mcp handling raw activity data.
+**Separate server from strava-mcp.** The intervals.icu public API does not proxy Strava-sourced activity data due to Strava's API terms. Raw activity streams, segment efforts and gear data require direct Strava API access. The two servers are designed to run alongside each other. intervals.icu handles training analytics and wellness and strava-mcp handles raw activity data.
 
 **Errors surface as exceptions.** Tool functions raise `RuntimeError` on API failures rather than returning error strings. This ensures the exact API error message reaches the AI assistant rather than being paraphrased.
 
@@ -221,16 +221,16 @@ intervals-mcp (FastMCP / stdio)
 
 ## Limitations and Known Constraints
 
-- **Strava activity data is not available through intervals.icu.** The intervals.icu public API does not proxy raw Strava data. For activity streams, segment efforts, and gear, use [strava-mcp](../strava-mcp/) alongside this server.
+- **Strava activity data is not available through intervals.icu.** The intervals.icu public API does not proxy raw Strava data. For activity streams, segment efforts and gear, use [strava-mcp](../strava-mcp/) alongside this server.
 - **HRV4Training has no public API.** Data is sourced from a CSV export. This requires a periodic manual export from the HRV4Training app; it is not a live feed.
-- **Write operations are available but unconfirmed.** `update_activity`, `update_wellness`, and `delete_activity` write to intervals.icu. Use with care in automated or multi-step agent workflows.
+- **Write operations are available but unconfirmed.** `update_activity`, `update_wellness` and `delete_activity` write to intervals.icu. Use with care in automated or multi-step agent workflows.
 - **Model quality affects analysis depth.** Claude Sonnet 4.6 or later is recommended for reliable tool use and multi-source data correlation. Earlier model versions showed hallucination of training data when tool calls were expected.
 
 ---
 
 ## Roadmap Considerations
 
-- **Cross-source analysis server** — dedicated MCP server with pre-computed correlations between HRV, sleep, and performance metrics (normalized power, HR efficiency, segment times vs. fitness model)
+- **Cross-source analysis server** — dedicated MCP server with pre-computed correlations between HRV, sleep and performance metrics (normalized power, HR efficiency, segment times vs. fitness model)
 - **Strava integration in a single query** — agent-level orchestration to join intervals.icu and Strava data in a single conversation without switching servers
 - **Wellness trend alerting** — tool to flag meaningful deviations in HRV or sleep patterns relative to rolling baseline
 - **Live HRV feed** — integration with wearables that offer a direct API (Garmin, Polar, Whoop) to eliminate the CSV export step

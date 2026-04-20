@@ -1,18 +1,18 @@
 # strava-mcp
 
-A natural language interface for Strava activity data, built on the Model Context Protocol (MCP). Exposes athlete activities, time-series streams, segment efforts, gear, and routes as AI-callable tools, enabling conversational analysis of training history and performance data.
+A natural language interface for Strava activity data, built on the Model Context Protocol (MCP). Exposes athlete activities, time-series streams, segment efforts, gear and routes as AI-callable tools, enabling conversational analysis of training history and performance data.
 
 ---
 
 ## The Problem
 
-Strava is the de facto activity tracking platform for endurance athletes, but accessing its data programmatically requires navigating a REST API, managing OAuth 2.0 token lifecycles, and writing code to extract and correlate the metrics that matter. For athletes using [intervals.icu](https://intervals.icu) for training analytics, the situation is compounded: intervals.icu's public API does not proxy Strava-sourced activity data due to Strava's API terms, creating a gap in coverage for raw streams, segment efforts, and gear data.
+Strava is the de facto activity tracking platform for endurance athletes, but accessing its data programmatically requires navigating a REST API, managing OAuth 2.0 token lifecycles and writing code to extract and correlate the metrics that matter. For athletes using [intervals.icu](https://intervals.icu) for training analytics, the situation is compounded: intervals.icu's public API does not proxy Strava-sourced activity data due to Strava's API terms, creating a gap in coverage for raw streams, segment efforts and gear data.
 
 ---
 
 ## The Solution
 
-strava-mcp connects directly to the Strava API via OAuth 2.0 and exposes it as MCP tools. Used alongside [intervals-mcp](../intervals-mcp/), it completes the picture — intervals.icu for training load, fitness modeling, and wellness analytics; Strava for raw activity data, segment performance, and gear tracking.
+strava-mcp connects directly to the Strava API via OAuth 2.0 and exposes it as MCP tools. Used alongside [intervals-mcp](../intervals-mcp/), it completes the picture. intervals.icu for training load, fitness modeling and wellness analytics. Strava for raw activity data, segment performance and gear tracking.
 
 **Example interactions:**
 
