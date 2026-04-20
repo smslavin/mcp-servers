@@ -147,7 +147,7 @@ def get_hrv_data(
     after_d = date.fromisoformat(after) if after else None
     before_d = date.fromisoformat(before) if before else None
 
-    content = _get_csv_content()
+    content = _get_csv_content().replace('\r\n', '\n').replace('\r', '\n')
     reader = csv.DictReader(io.StringIO(content))
     reader.fieldnames = [h.strip() for h in reader.fieldnames]
 
