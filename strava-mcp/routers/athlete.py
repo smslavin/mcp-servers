@@ -12,19 +12,13 @@ def get_athlete() -> str:
 
 @mcp.tool()
 def get_athlete_stats() -> str:
-    """
-    Get lifetime stats for the authenticated athlete (totals for rides, runs, swims).
-    Requires the athlete ID from get_athlete.
-    """
-    # Fetch athlete id first
+    """Get lifetime stats for the authenticated athlete (totals for rides, runs, swims)."""
     with get_client() as c:
         r = c.get(f"{BASE_URL}/athlete")
-    handle_response(r)
-    athlete_id = r.json()["id"]
-
-    with get_client() as c:
-        r = c.get(f"{BASE_URL}/athletes/{athlete_id}/stats")
-    return handle_response(r)
+        handle_response(r)
+        athlete_id = r.json()["id"]
+        r2 = c.get(f"{BASE_URL}/athletes/{athlete_id}/stats")
+    return handle_response(r2)
 
 
 @mcp.tool()

@@ -1,8 +1,20 @@
-import json
 from typing import Optional
+
+from pydantic import BaseModel
 
 from app import mcp
 from client import athlete_id, get_client, handle_response, BASE_URL
+
+
+class ActivityUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    type: Optional[str] = None
+    indoor: Optional[bool] = None
+    perceived_exertion: Optional[int] = None
+    feel: Optional[int] = None
+    race: Optional[bool] = None
+    commute: Optional[bool] = None
 
 
 # ---------------------------------------------------------------------------
@@ -187,21 +199,17 @@ def get_activity(activity_id: str, include_intervals: bool = False) -> str:
 
 
 @mcp.tool()
-def update_activity(activity_id: str, payload: str) -> str:
+def update_activity(activity_id: str, updates: ActivityUpdate) -> str:
     """
     Update fields on an existing activity.
 
     Args:
         activity_id: The activity ID (e.g. 'A12345678').
-        payload: JSON string of fields to update. Common fields:
-            name, description, type, indoor, perceived_exertion, feel, race, commute.
+        updates: Fields to update. All fields are optional — only provided fields
+            are written. perceived_exertion 1-10; feel 1-5.
     """
-    try:
-        data = json.loads(payload)
-    except json.JSONDecodeError as e:
-        return f"Invalid JSON payload: {e}"
     with get_client() as c:
-        r = c.put(f"{BASE_URL}/activity/{activity_id}", json=data)
+        r = c.put(f"{BASE_URL}/activity/{activity_id}", json=updates.model_dump(exclude_none=True))
     return handle_response(r)
 
 
@@ -526,18 +534,14 @@ def get_activity_messages(
 
 
 @mcp.tool()
-def post_activity_message(activity_id: str, payload: str) -> str:
+def post_activity_message(activity_id: str, message: str) -> str:
     """
     Add a comment/message to an activity.
 
     Args:
         activity_id: The activity ID.
-        payload: JSON string with message fields, e.g. {"message": "Great ride!"}.
+        message: The comment text to post.
     """
-    try:
-        data = json.loads(payload)
-    except json.JSONDecodeError as e:
-        return f"Invalid JSON payload: {e}"
     with get_client() as c:
-        r = c.post(f"{BASE_URL}/activity/{activity_id}/messages", json=data)
+        r = c.post(f"{BASE_URL}/activity/{activity_id}/messages", json={"message": message})
     return handle_response(r)

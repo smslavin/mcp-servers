@@ -12,17 +12,14 @@ def list_routes(per_page: int = 30, page: int = 1) -> str:
         page: Page number for pagination.
     """
     with get_client() as c:
-        athlete_r = c.get(f"{BASE_URL}/athlete")
-    athlete_id = handle_response(athlete_r)
-    import json
-    athlete_id = json.loads(athlete_id)["id"]
-
-    with get_client() as c:
-        r = c.get(
+        r = c.get(f"{BASE_URL}/athlete")
+        handle_response(r)
+        athlete_id = r.json()["id"]
+        r2 = c.get(
             f"{BASE_URL}/athletes/{athlete_id}/routes",
             params={"per_page": min(per_page, 200), "page": page},
         )
-    return handle_response(r)
+    return handle_response(r2)
 
 
 @mcp.tool()

@@ -68,6 +68,8 @@ intervals-mcp (FastMCP / stdio)
 
 **Separate server from strava-mcp.** The intervals.icu public API does not proxy Strava-sourced activity data due to Strava's API terms. Raw activity streams, segment efforts and gear data require direct Strava API access. The two servers are designed to run alongside each other. intervals.icu handles training analytics and wellness and strava-mcp handles raw activity data.
 
+**Typed tool inputs via Pydantic.** Write tools (`update_wellness`, `bulk_update_wellness`, `update_activity`, `post_activity_message`) accept structured Pydantic models rather than raw JSON strings. FastMCP generates a complete JSON Schema from the model, so the AI assistant receives typed, enumerable field definitions instead of an opaque string parameter.
+
 **Errors surface as exceptions.** Tool functions raise `RuntimeError` on API failures rather than returning error strings. This ensures the exact API error message reaches the AI assistant rather than being paraphrased.
 
 ---

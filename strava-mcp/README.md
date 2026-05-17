@@ -62,6 +62,8 @@ Strava REST API (api.strava.com)
 
 **Domain-separated routers.** Tools are organized by concern (`athlete`, `activities`, `segments`, `gear`, `routes`). Each module is independently maintainable and the separation maps cleanly to Strava's own API resource groupings.
 
+**Typed tool inputs via Pydantic.** `update_activity` accepts a structured Pydantic model rather than a raw JSON string. FastMCP generates a complete JSON Schema from the model, so the AI assistant receives typed, enumerable field definitions instead of an opaque string parameter.
+
 **Errors surface as exceptions.** Tool functions raise `RuntimeError` on API failures rather than returning error strings. This ensures the exact Strava API error reaches the AI assistant rather than being paraphrased or fabricated.
 
 ---

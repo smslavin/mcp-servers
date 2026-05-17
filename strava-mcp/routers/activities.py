@@ -1,9 +1,21 @@
-import json
 from datetime import datetime, timezone
 from typing import Optional
 
+from pydantic import BaseModel
+
 from app import mcp
 from client import BASE_URL, get_client, handle_response
+
+
+class ActivityUpdate(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = None
+    sport_type: Optional[str] = None
+    description: Optional[str] = None
+    gear_id: Optional[str] = None
+    commute: Optional[bool] = None
+    trainer: Optional[bool] = None
+    hide_from_home: Optional[bool] = None
 
 
 def _to_timestamp(date_str: str) -> int:
@@ -151,20 +163,15 @@ def get_activity_kudos(activity_id: int, page: int = 1, per_page: int = 30) -> s
 
 
 @mcp.tool()
-def update_activity(activity_id: int, payload: str) -> str:
+def update_activity(activity_id: int, updates: ActivityUpdate) -> str:
     """
     Update fields on an activity.
 
     Args:
         activity_id: The Strava activity ID (integer).
-        payload: JSON string of fields to update. Editable fields:
-            name, type, sport_type, description, gear_id,
-            commute (bool), trainer (bool), hide_from_home (bool).
+        updates: Fields to update. All fields are optional — only provided fields
+            are written. sport_type takes precedence over type when both are set.
     """
-    try:
-        data = json.loads(payload)
-    except json.JSONDecodeError as e:
-        return f"Invalid JSON payload: {e}"
     with get_client() as c:
-        r = c.put(f"{BASE_URL}/activities/{activity_id}", json=data)
+        r = c.put(f"{BASE_URL}/activities/{activity_id}", json=updates.model_dump(exclude_none=True))
     return handle_response(r)

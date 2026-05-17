@@ -1,3 +1,5 @@
+import json
+from datetime import datetime, timezone
 from typing import Optional
 
 from app import mcp
@@ -47,8 +49,6 @@ def list_segment_efforts(
         before: Filter to efforts before this date YYYY-MM-DD.
         per_page: Number of results (max 200).
     """
-    from datetime import datetime, timezone
-
     params: dict = {
         "segment_id": segment_id,
         "per_page": min(per_page, 200),
@@ -94,9 +94,8 @@ def get_activity_segment_efforts(activity_id: int) -> str:
             f"{BASE_URL}/activities/{activity_id}",
             params={"include_all_efforts": "true"},
         )
-    data = handle_response(r)
-    import json
-    activity = json.loads(data)
+    handle_response(r)
+    activity = r.json()
     efforts = activity.get("segment_efforts", [])
     result = [
         {

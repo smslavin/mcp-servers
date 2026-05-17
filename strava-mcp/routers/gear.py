@@ -1,3 +1,5 @@
+import json
+
 from app import mcp
 from client import BASE_URL, get_client, handle_response
 
@@ -24,8 +26,8 @@ def list_athlete_gear() -> str:
     """
     with get_client() as c:
         r = c.get(f"{BASE_URL}/athlete")
-    import json
-    athlete = json.loads(handle_response(r))
+    handle_response(r)
+    athlete = r.json()
     gear = {
         "bikes": athlete.get("bikes", []),
         "shoes": athlete.get("shoes", []),
