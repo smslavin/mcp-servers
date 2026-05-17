@@ -101,6 +101,7 @@ intervals-mcp (FastMCP / stdio)
 | `get_wellness` | Get a single wellness entry by date |
 | `update_wellness` | Create or update a wellness entry |
 | `bulk_update_wellness` | Update multiple wellness records in one call |
+| `wellness_trend_alert` | Flag whether the most recent reading for a metric deviates meaningfully from the rolling baseline |
 
 ### Activities
 | Tool | Description |

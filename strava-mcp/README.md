@@ -116,6 +116,7 @@ Strava REST API (api.strava.com)
 |---|---|
 | `list_athlete_gear` | List all bikes and shoes with total logged distance |
 | `get_gear` | Get details for a specific piece of gear |
+| `get_gear_maintenance_status` | Check maintenance status for all gear against distance thresholds (WARNING at 90%, EXCEEDED at 100%) |
 
 ### Routes
 | Tool | Description |
