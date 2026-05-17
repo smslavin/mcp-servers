@@ -65,6 +65,22 @@ analytics-mcp (FastMCP / stdio)
     ```
     Edit `.env` and fill in your intervals.icu credentials. For Strava, copy the token values from your strava-mcp `.env` — they share the same app credentials.
 
+### Connecting from Claude Desktop (Windows, server running in WSL)
+
+```json
+{
+  "mcpServers": {
+    "analytics": {
+      "command": "wsl.exe",
+      "args": [
+        "/home/yourname/miniconda3/envs/analytics-mcp/bin/python",
+        "/home/yourname/code/mcp-servers/analytics-mcp/server.py"
+      ]
+    }
+  }
+}
+```
+
 ### Connecting from Claude Code or Claude Desktop (macOS/Linux)
 
 ```json
