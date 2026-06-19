@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 from typing import Optional
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from app import mcp
+from client_dropbox import load_hrv_by_date
 from client_intervals import BASE_URL as INTERVALS_URL
 from client_intervals import athlete_id, get_intervals_client, handle_intervals_response
 from client_strava import BASE_URL as STRAVA_URL
@@ -38,6 +40,32 @@ def _interpret_r(r: float) -> str:
     return f"{strength} {direction} (r={r:.3f})"
 
 
+def _activity_local_date(act: dict) -> str:
+    """Return YYYY-MM-DD in the activity's local timezone.
+
+    start_date_local may come back as a UTC-offset string (e.g.
+    "2024-01-14T20:00:00+00:00") rather than genuine local time.  When it
+    carries timezone info we convert to the activity's IANA timezone so the
+    calendar date matches the athlete's local day, not the UTC day.
+    """
+    raw = act.get("start_date_local", "")
+    if not raw:
+        return ""
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return raw[:10]
+    if dt.tzinfo is None:
+        return raw[:10]
+    tz_name = act.get("timezone", "")
+    if tz_name:
+        try:
+            dt = dt.astimezone(ZoneInfo(tz_name))
+        except (ZoneInfoNotFoundError, KeyError):
+            pass
+    return dt.strftime("%Y-%m-%d")
+
+
 # ---------------------------------------------------------------------------
 # correlate_hrv_with_performance
 # ---------------------------------------------------------------------------
@@ -49,14 +77,16 @@ def correlate_hrv_with_performance(
     athlete_id_override: Optional[str] = None,
 ) -> str:
     """
-    Correlate daily HRV with same-day training performance over a date range.
+    Correlate daily HRV (rMSSD from HRV4Training via Dropbox) with same-day
+    training performance over a date range.
 
     For each day that has both an HRV reading and at least one activity, pairs
-    the HRV value with normalized power and HR efficiency (NP / avg HR). Returns
-    a day-by-day table and Pearson correlation coefficients for both pairings.
+    the rMSSD value with normalized power and HR efficiency (NP / avg HR).
+    Returns a day-by-day table and Pearson correlation coefficients for both
+    pairings.
 
-    Higher HRV is generally associated with better readiness. A positive correlation
-    with NP and HR efficiency suggests the fitness model is tracking well.
+    Higher rMSSD generally indicates better recovery. A positive correlation
+    with NP and HR efficiency suggests the HRV signal is tracking readiness well.
 
     Args:
         after: Start date YYYY-MM-DD (inclusive).
@@ -67,24 +97,19 @@ def correlate_hrv_with_performance(
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     newest = before or today
 
+    hrv_by_date = load_hrv_by_date(after=after, before=newest)
+
     with get_intervals_client() as c:
-        rw = c.get(
-            f"{INTERVALS_URL}/athlete/{aid}/wellness",
-            params={"oldest": after, "newest": newest},
-        )
         ra = c.get(
             f"{INTERVALS_URL}/athlete/{aid}/activities",
-            params={"oldest": after, "newest": newest, "fields": "start_date_local,average_hr,normalized_power"},
+            params={"oldest": after, "newest": newest, "fields": "start_date_local,timezone,average_hr,normalized_power"},
         )
-    handle_intervals_response(rw)
     handle_intervals_response(ra)
 
-    wellness = {e["id"]: e for e in rw.json() if e.get("hrv") is not None}
-
-    # Group activities by date, pick the one with the highest NP on that day
+    # Group activities by local date, pick the one with the highest NP on that day
     activities_by_date: dict[str, dict] = {}
     for act in ra.json():
-        d = act.get("start_date_local", "")[:10]
+        d = _activity_local_date(act)
         np_ = act.get("normalized_power") or 0
         hr = act.get("average_hr") or 0
         if np_ > 0 and hr > 0:
@@ -92,7 +117,7 @@ def correlate_hrv_with_performance(
             if existing is None or np_ > (existing.get("normalized_power") or 0):
                 activities_by_date[d] = act
 
-    paired_dates = sorted(set(wellness) & set(activities_by_date))
+    paired_dates = sorted(set(hrv_by_date) & set(activities_by_date))
     if len(paired_dates) < 3:
         return (
             f"Not enough paired days: found {len(paired_dates)} day(s) with both HRV "
@@ -100,11 +125,11 @@ def correlate_hrv_with_performance(
         )
 
     hrv_vals, np_vals, eff_vals = [], [], []
-    rows = ["Date         HRV    NP (w)   HR eff (NP/HR)"]
-    rows.append("-" * 46)
+    rows = ["Date         rMSSD   NP (w)   HR eff (NP/HR)"]
+    rows.append("-" * 47)
 
     for d in paired_dates:
-        hrv = float(wellness[d]["hrv"])
+        hrv = hrv_by_date[d]
         act = activities_by_date[d]
         np_ = float(act["normalized_power"])
         hr = float(act["average_hr"])
@@ -250,7 +275,7 @@ def fitness_vs_segment_prs(
         return f"No segment efforts found for segment {segment_id}."
 
     # Collect unique effort dates for wellness lookup
-    effort_dates = sorted({e["start_date_local"][:10] for e in efforts})
+    effort_dates = sorted({_activity_local_date(e) for e in efforts})
     oldest = effort_dates[0]
     newest = effort_dates[-1]
 
@@ -265,7 +290,7 @@ def fitness_vs_segment_prs(
     # Build joined rows — one row per effort, using wellness from the same date
     rows_data = []
     for e in efforts:
-        d = e["start_date_local"][:10]
+        d = _activity_local_date(e)
         w = wellness_by_date.get(d, {})
         rows_data.append({
             "date": d,
