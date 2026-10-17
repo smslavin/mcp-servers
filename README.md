@@ -9,8 +9,8 @@ A collection of [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
 | [intervals-mcp](intervals-mcp/) | Tools for the [intervals.icu](https://intervals.icu) training and wellness platform — activities, wellness metrics, power curves, and more |
 | [strava-mcp](strava-mcp/) | Tools for the [Strava](https://www.strava.com) fitness platform — activity data, laps, streams, zones, and athlete stats |
 | [analytics-mcp](analytics-mcp/) | Cross-source analytics joining intervals.icu and Strava — HRV vs performance, fitness vs segment times, training load vs sleep |
-| [mqtt-mcp](mqtt-mcp/) | Tools for exploring an MQTT broker — topic discovery, subtopic navigation, and value inspection |
-| [opcua-mcp](opcua-mcp/) | Tools for browsing and reading OPC-UA servers — node discovery, metadata inspection, and live value reads. Includes a Water Treatment Plant simulator |
+
+The MQTT and OPC-UA servers moved to their own repos, with their history, so each can be versioned and tagged: [smslavin/mqtt-mcp](https://github.com/smslavin/mqtt-mcp) and [smslavin/opcua-mcp](https://github.com/smslavin/opcua-mcp).
 
 ## Structure
 
